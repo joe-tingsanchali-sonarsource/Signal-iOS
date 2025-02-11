@@ -28,41 +28,35 @@ jobs:
     runs-on: self-hosted
     env:
       FASTLANE_XCODEBUILD_SETTINGS_RETRIES: 7
-
     # strategy:
     #   matrix:
     #     # Add additional Xcode versions here if necessary.
     #     xcode: ["Xcode_16.2"]
-
     steps:
       - name: Set Xcode version
         # run: |
         #   echo DEVELOPER_DIR=/Applications/${{matrix.xcode}}.app >> "$GITHUB_ENV"
         run: |
           echo DEVELOPER_DIR=/Applications/Xcode.app >> "$GITHUB_ENV"
-
       - uses: actions/checkout@v4
-
+        with:
+          fetch-depth: 0        
       - name: Check Xcode version
         run: |
           Scripts/check_xcode_version.py
-
       # - uses: ./.github/actions/clone-everything
       #   with:
       #     access-token: ${{ secrets.ACCESS_TOKEN }}
-
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1 # Reads .ruby-version file by default
         with:
           bundler-cache: true
-
       - name: Build and Test
         run: |
           function formatFailures() {
             grep '<failure message' fastlane/test_output/report.junit | sed -E "s/^.*<failure message='(.*)'>(.*):([0-9]+)<\/failure>/::error file=\2,line=\3::\1/" | sed -E 's/&quot;/"/g'
             exit 1
           }
-
           bundle exec fastlane scan \
             --scheme Signal \
             --output_types junit \
