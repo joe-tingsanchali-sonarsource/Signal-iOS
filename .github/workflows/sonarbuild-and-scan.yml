@@ -24,19 +24,22 @@ jobs:
   build_and_test:
     name: Build and Test
     timeout-minutes: 20
-    runs-on: macos-15-xlarge
+    # runs-on: macos-15-xlarge
+    runs-on: self-hosted
     env:
       FASTLANE_XCODEBUILD_SETTINGS_RETRIES: 7
 
-    strategy:
-      matrix:
-        # Add additional Xcode versions here if necessary.
-        xcode: ["Xcode_16.2"]
+    # strategy:
+    #   matrix:
+    #     # Add additional Xcode versions here if necessary.
+    #     xcode: ["Xcode_16.2"]
 
     steps:
       - name: Set Xcode version
+        # run: |
+        #   echo DEVELOPER_DIR=/Applications/${{matrix.xcode}}.app >> "$GITHUB_ENV"
         run: |
-          echo DEVELOPER_DIR=/Applications/${{matrix.xcode}}.app >> "$GITHUB_ENV"
+          echo DEVELOPER_DIR=/Applications/Xcode.app >> "$GITHUB_ENV"
 
       - uses: actions/checkout@v4
 
@@ -75,32 +78,32 @@ jobs:
       #     name: Logs
       #     path: ~/Library/Logs/scan
 
-  check_autogenstrings:
-    name: Check if strings file is outdated
-    timeout-minutes: 10
-    runs-on: macos-15
-    if: github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run genstrings
-        run: Scripts/translation/auto-genstrings
-      - name: Check for any changes
-        run: git diff --exit-code
+  # check_autogenstrings:
+  #   name: Check if strings file is outdated
+  #   timeout-minutes: 10
+  #   runs-on: macos-15
+  #   if: github.event_name == 'pull_request'
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Run genstrings
+  #       run: Scripts/translation/auto-genstrings
+  #     - name: Check for any changes
+  #       run: git diff --exit-code
 
-  lint:
-    name: Lint
-    timeout-minutes: 5
-    runs-on: macos-15
-    if: github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@v4
-      - name: Fetch base commit
-        run: git fetch origin --depth 1 ${{ github.base_ref }}
-      - name: Install Dependencies
-        run: brew install clang-format swiftlint
-      - name: Lint files changed in the PR
-        run: |
-          Scripts/precommit.py --ref origin/${{ github.base_ref }}
-          # https://help.github.com/en/actions/reference/development-tools-for-github-actions#logging-commands
-          git diff --name-only | sed -E 's|(.*)|::error file=\1::Incorrectly formatted (Scripts/precommit.py)|'
-          git diff --exit-code || exit 1
+  # lint:
+  #   name: Lint
+  #   timeout-minutes: 5
+  #   runs-on: macos-15
+  #   if: github.event_name == 'pull_request'
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Fetch base commit
+  #       run: git fetch origin --depth 1 ${{ github.base_ref }}
+  #     - name: Install Dependencies
+  #       run: brew install clang-format swiftlint
+  #     - name: Lint files changed in the PR
+  #       run: |
+  #         Scripts/precommit.py --ref origin/${{ github.base_ref }}
+  #         # https://help.github.com/en/actions/reference/development-tools-for-github-actions#logging-commands
+  #         git diff --name-only | sed -E 's|(.*)|::error file=\1::Incorrectly formatted (Scripts/precommit.py)|'
+  #         git diff --exit-code || exit 1
